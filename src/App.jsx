@@ -301,7 +301,7 @@ export default function App() {
   const doneQ   = allQs.filter(q => ans[q.id] != null).length;
   const totalQ  = allQs.length;
   const disp    = anim ?? myS ?? {};
-  const STEPS   = CATS.length + 1; // 4 question sections + 1 feedback step
+  const STEPS   = CATS.length + 1; // 5 question sections + 1 feedback step
 
   const cd = (() => {
     const g = {};

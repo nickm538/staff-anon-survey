@@ -1,5 +1,6 @@
 const express = require("express");
 const path = require("path");
+const fs = require("fs");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,9 +55,12 @@ app.post("/api/analyze", async (req, res) => {
 });
 
 /* ── Serve the built React app ── */
-app.use(express.static(path.join(__dirname, "dist")));
+const distDir = path.join(__dirname, "dist");
+app.use(express.static(distDir));
+
+const indexHtml = fs.readFileSync(path.join(distDir, "index.html"), "utf8");
 app.get("*", (_req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
+  res.type("html").send(indexHtml);
 });
 
 app.listen(PORT, () => {
