@@ -1,0 +1,24 @@
+{
+  "name": "staff-anon-survey",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Anonymous staff wellness survey web app",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.2.5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
