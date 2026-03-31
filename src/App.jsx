@@ -341,6 +341,8 @@ export default function App() {
    * Community Wall – Anonymous Thumbs Up
    * Reads the current like count for a post, increments it by 1,
    * and writes back. Each like is anonymous — no user tracking.
+   * Note: The read-modify-write is not atomic, so concurrent likes could
+   * lose a count. Acceptable for this in-memory, low-traffic use case.
    */
   async function thumbsUp(postId) {
     const key = `${CWLIKE}${postId}`;
@@ -829,7 +831,7 @@ export default function App() {
         <div style={{ fontSize:13, fontWeight:700, color:"#92400e", marginBottom:8 }}>ℹ️ How the Community Wall Works</div>
         <ul style={{ margin:0, paddingLeft:18, fontSize:12, color:"#92400e", lineHeight:1.7 }}>
           <li>Posts are <b>100% anonymous</b> — no names, IPs, or identifiers are ever recorded.</li>
-          <li>Only staff who complete the survey can access this wall.</li>
+          <li>Only staff who complete all survey questions can access this wall.</li>
           <li>Use the <b>👍 thumbs-up</b> to show support for a post. Likes are also anonymous.</li>
           <li>Feedback is sent to management regardless — posting here is an <b>optional extra</b> so colleagues can see shared concerns.</li>
         </ul>
