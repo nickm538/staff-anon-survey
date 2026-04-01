@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
+/* ── Brand identity tokens (addressthehomeless.org schema) ── */
+const BRAND_FONT = '"Roboto", "Arial", sans-serif';
+
 const PFXKEY  = "ws_v1_";
 const FBKEY   = "wsfb_v1_";
 const CWKEY   = "cw_v1_";     // Community Wall posts (anonymous)
@@ -82,21 +85,21 @@ function mkArc(cx, cy, r, s, e) {
   const p1 = xyAt(cx, cy, r, s), p2 = xyAt(cx, cy, r, e);
   return `M${p1.x.toFixed(1)},${p1.y.toFixed(1)} A${r},${r} 0 ${(e-s)%360>180?1:0},1 ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
 }
-function Gauge({ score = 0, color = "#6b7280", size = 130 }) {
+function Gauge({ score = 0, color = "#565656", size = 130 }) {
   const r = size * 0.36, cx = size / 2, cy = size * 0.52, sw = size * 0.095;
   const s = Math.min(Math.max(score, 0), 100);
   return (
     <svg width={size} height={size * 0.8} style={{ overflow: "visible", display: "block" }}>
-      <path d={mkArc(cx, cy, r, 135, 405)} fill="none" stroke="#e5e7eb" strokeWidth={sw} strokeLinecap="round" />
+      <path d={mkArc(cx, cy, r, 135, 405)} fill="none" stroke="#E6E6E6" strokeWidth={sw} strokeLinecap="round" />
       {s > 0.5 && <path d={mkArc(cx, cy, r, 135, 135 + (s/100)*270)} fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" />}
-      <text x={cx} y={cy+7} textAnchor="middle" fontSize={size*.22} fontWeight="800" fill="#1f2937" fontFamily="system-ui">{Math.round(s)}</text>
-      <text x={cx} y={cy+size*.22} textAnchor="middle" fontSize={size*.095} fill="#9ca3af" fontFamily="system-ui">/100</text>
+      <text x={cx} y={cy+7} textAnchor="middle" fontSize={size*.22} fontWeight="700" fill="#000000" fontFamily="Roboto, Arial, sans-serif">{Math.round(s)}</text>
+      <text x={cx} y={cy+size*.22} textAnchor="middle" fontSize={size*.095} fill="#565656" fontFamily="Roboto, Arial, sans-serif">/100</text>
     </svg>
   );
 }
 function MiniBar({ value, color }) {
   return (
-    <div style={{ height: 6, background: "#f3f4f6", borderRadius: 3, overflow: "hidden" }}>
+    <div style={{ height: 6, background: "#F5F5F5", borderRadius: 3, overflow: "hidden" }}>
       <div style={{ height: "100%", width: `${value}%`, background: color, borderRadius: 3, transition: "width .5s ease" }} />
     </div>
   );
@@ -145,28 +148,28 @@ function FeedbackAnalysis({ feedbacks }) {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <div>
-          <div style={{ fontWeight: 700, color: "#1f2937", fontSize: 14 }}>🧠 AI Feedback Intelligence</div>
-          <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>
+          <div style={{ fontWeight: 700, color: "#000000", fontSize: 14 }}>🧠 AI Feedback Intelligence</div>
+          <div style={{ fontSize: 12, color: "#565656", marginTop: 2 }}>
             {feedbacks.length} anonymous response{feedbacks.length !== 1 ? "s" : ""} · themes auto-ranked by AI
           </div>
         </div>
         {(themes !== null || err) && !loading && (
-          <button onClick={analyze} style={{ padding: "6px 12px", background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 7, fontSize: 12, cursor: "pointer", color: "#374151" }}>
+          <button onClick={analyze} style={{ padding: "6px 12px", background: "#F5F5F5", border: "1px solid #E6E6E6", borderRadius: 2, fontSize: 12, cursor: "pointer", color: "#000000" }}>
             ↺ Refresh
           </button>
         )}
       </div>
 
       {feedbacks.length < 2 && (
-        <div style={{ textAlign: "center", padding: "28px 16px", color: "#9ca3af", fontSize: 13 }}>
+        <div style={{ textAlign: "center", padding: "28px 16px", color: "#565656", fontSize: 13 }}>
           <div style={{ fontSize: 32, marginBottom: 10 }}>⏳</div>
-          <div style={{ fontWeight: 600, color: "#6b7280", marginBottom: 6 }}>Analysis will appear soon</div>
+          <div style={{ fontWeight: 600, color: "#565656", marginBottom: 6 }}>Analysis will appear soon</div>
           At least 2 feedback submissions are needed to begin surfacing common themes. Results may take some time to populate as more staff respond — check back after more submissions come in.
         </div>
       )}
 
       {loading && (
-        <div style={{ textAlign: "center", padding: "28px 16px", color: "#6b7280", fontSize: 13 }}>
+        <div style={{ textAlign: "center", padding: "28px 16px", color: "#565656", fontSize: 13 }}>
           <div style={{ fontSize: 36, marginBottom: 10 }}>🧠</div>
           <div style={{ fontWeight: 600, marginBottom: 6 }}>Analyzing {feedbacks.length} submissions…</div>
           Grouping common themes and ranking by frequency. This may take a moment.
@@ -174,13 +177,13 @@ function FeedbackAnalysis({ feedbacks }) {
       )}
 
       {err && !loading && (
-        <div style={{ background: "#fef2f2", border: "1px solid #ef444430", borderRadius: 8, padding: "12px 14px", fontSize: 13, color: "#ef4444" }}>
+        <div style={{ background: "#fef2f2", border: "1px solid #ef444430", borderRadius: 2, padding: "12px 14px", fontSize: 13, color: "#ef4444" }}>
           ⚠️ {err}
         </div>
       )}
 
       {themes && !loading && themes.length === 0 && (
-        <div style={{ textAlign: "center", color: "#9ca3af", fontSize: 13, padding: "16px" }}>
+        <div style={{ textAlign: "center", color: "#565656", fontSize: 13, padding: "16px" }}>
           No clear themes identified yet. More responses will improve the analysis.
         </div>
       )}
@@ -191,29 +194,29 @@ function FeedbackAnalysis({ feedbacks }) {
             {themes.map(th => {
               const cfg = SENT_CFG[th.sentiment] || SENT_CFG.concern;
               return (
-                <div key={th.rank} style={{ border: `1px solid ${cfg.color}30`, borderRadius: 10, background: cfg.bg, padding: "14px 16px" }}>
+                <div key={th.rank} style={{ border: `1px solid ${cfg.color}30`, borderRadius: 2, background: cfg.bg, padding: "14px 16px" }}>
                   <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                    <div style={{ minWidth: 34, height: 34, borderRadius: 8, background: cfg.color, color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 15, flexShrink: 0 }}>
+                    <div style={{ minWidth: 34, height: 34, borderRadius: 2, background: cfg.color, color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 15, flexShrink: 0 }}>
                       #{th.rank}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 6, marginBottom: 6 }}>
-                        <span style={{ fontWeight: 700, color: "#1f2937", fontSize: 14 }}>{th.theme}</span>
+                        <span style={{ fontWeight: 700, color: "#000000", fontSize: 14 }}>{th.theme}</span>
                         <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
                           <span style={{ fontSize: 11, fontWeight: 600, color: cfg.color, background: "white", padding: "2px 9px", borderRadius: 20, border: `1px solid ${cfg.color}40`, whiteSpace: "nowrap" }}>
                             {cfg.icon} {cfg.label}
                           </span>
-                          <span style={{ fontSize: 11, color: "#6b7280", whiteSpace: "nowrap" }}>~{th.count} resp.</span>
+                          <span style={{ fontSize: 11, color: "#565656", whiteSpace: "nowrap" }}>~{th.count} resp.</span>
                         </div>
                       </div>
-                      <p style={{ margin: 0, fontSize: 12, color: "#4b5563", lineHeight: 1.65 }}>{th.summary}</p>
+                      <p style={{ margin: 0, fontSize: 12, color: "#565656", lineHeight: 1.65 }}>{th.summary}</p>
                     </div>
                   </div>
                 </div>
               );
             })}
           </div>
-          <p style={{ textAlign: "center", fontSize: 11, color: "#d1d5db", marginTop: 12 }}>
+          <p style={{ textAlign: "center", fontSize: 11, color: "#E5E3DF", marginTop: 12 }}>
             AI-generated · individual responses remain fully anonymous
           </p>
         </div>
@@ -383,8 +386,8 @@ export default function App() {
 
   /* ── Loading ── */
   if (!ready) return (
-    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"system-ui", background:"#f8fafc" }}>
-      <div style={{ textAlign:"center", color:"#6b7280" }}>
+    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:BRAND_FONT, background:"#F5F5F5" }}>
+      <div style={{ textAlign:"center", color:"#565656" }}>
         <div style={{ fontSize:40 }}>💙</div>
         <p style={{ marginTop:12, fontSize:14 }}>Loading wellness data…</p>
       </div>
@@ -404,8 +407,8 @@ export default function App() {
         {CATS.map(c => (
           <div key={c.id} style={{ ...S.card, background:c.bg, border:`1px solid ${c.color}30` }}>
             <div style={{ fontSize:24, marginBottom:6 }}>{c.icon}</div>
-            <div style={{ fontWeight:700, color:"#1f2937", fontSize:14 }}>{c.label}</div>
-            <div style={{ color:"#6b7280", fontSize:11, marginTop:3, lineHeight:1.45 }}>{c.desc}</div>
+            <div style={{ fontWeight:700, color:"#000000", fontSize:14 }}>{c.label}</div>
+            <div style={{ color:"#565656", fontSize:11, marginTop:3, lineHeight:1.45 }}>{c.desc}</div>
           </div>
         ))}
       </div>
@@ -414,7 +417,7 @@ export default function App() {
         {[["📝","20 Questions"],["⏱️","~4 Minutes"],["🔒","Anonymous"],["💬","Open Feedback"]].map(([ic,lb]) => (
           <div key={lb} style={{ textAlign:"center" }}>
             <div style={{ fontSize:20 }}>{ic}</div>
-            <div style={{ fontSize:10, color:"#6b7280", fontWeight:600, marginTop:4 }}>{lb}</div>
+            <div style={{ fontSize:10, color:"#565656", fontWeight:600, marginTop:4 }}>{lb}</div>
           </div>
         ))}
       </div>
@@ -422,17 +425,17 @@ export default function App() {
       {teamAvg && (
         <div style={{ ...S.card, marginBottom:18 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-            <span style={{ fontWeight:700, color:"#1f2937", fontSize:14 }}>Team Average</span>
+            <span style={{ fontWeight:700, color:"#000000", fontSize:14 }}>Team Average</span>
             <div style={{ textAlign:"right" }}>
-              <span style={{ fontWeight:800, fontSize:24, color:sc(teamAvg.overall) }}>{teamAvg.overall}</span>
-              <span style={{ fontSize:11, color:"#9ca3af" }}>/100</span>
-              <div style={{ fontSize:10, color:"#9ca3af", marginTop:1 }}>{subs.length} submission{subs.length>1?"s":""}</div>
+              <span style={{ fontWeight:700, fontSize:24, color:sc(teamAvg.overall) }}>{teamAvg.overall}</span>
+              <span style={{ fontSize:11, color:"#565656" }}>/100</span>
+              <div style={{ fontSize:10, color:"#565656", marginTop:1 }}>{subs.length} submission{subs.length>1?"s":""}</div>
             </div>
           </div>
           {CATS.map(c => (
             <div key={c.id} style={{ marginBottom:10 }}>
               <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-                <span style={{ fontSize:12, color:"#374151" }}>{c.icon} {c.label}</span>
+                <span style={{ fontSize:12, color:"#000000" }}>{c.icon} {c.label}</span>
                 <span style={{ fontSize:12, fontWeight:700, color:c.color }}>{teamAvg[c.id]}</span>
               </div>
               <MiniBar value={teamAvg[c.id]} color={c.color} />
@@ -449,7 +452,7 @@ export default function App() {
           📊 View Trend Dashboard ({subs.length} submission{subs.length>1?"s":""})
         </button>
       )}
-      <p style={{ textAlign:"center", fontSize:11, color:"#d1d5db", marginTop:18 }}>
+      <p style={{ textAlign:"center", fontSize:11, color:"#E5E3DF", marginTop:18 }}>
         Responses are anonymously pooled. No names are recorded.
       </p>
     </div></div>
@@ -470,17 +473,17 @@ export default function App() {
               ? <span style={{ fontSize:13, fontWeight:700, color:"#8b5cf6" }}>💬 Step {STEPS}/{STEPS}: Open Feedback</span>
               : <span style={{ fontSize:13, fontWeight:700, color:cat.color }}>{cat.icon} Section {sec+1}/{STEPS}: {cat.label}</span>
             }
-            <span style={{ fontSize:12, color:"#9ca3af" }}>{doneQ}/{totalQ} answered</span>
+            <span style={{ fontSize:12, color:"#565656" }}>{doneQ}/{totalQ} answered</span>
           </div>
-          <div style={{ height:6, background:"#e5e7eb", borderRadius:10 }}>
-            <div style={{ height:"100%", width:`${isFeedbackStep?100:pct}%`, background: isFeedbackStep?"#8b5cf6":cat.color, borderRadius:10, transition:"width .3s ease" }} />
+          <div style={{ height:6, background:"#E6E6E6", borderRadius:2 }}>
+            <div style={{ height:"100%", width:`${isFeedbackStep?100:pct}%`, background: isFeedbackStep?"#8b5cf6":cat.color, borderRadius:2, transition:"width .3s ease" }} />
           </div>
           {/* Section dots */}
           <div style={{ display:"flex", gap:6, marginTop:8 }}>
             {[...CATS.map((c,i) => ({ color:c.color, id:c.id, i })), { color:"#8b5cf6", id:"fb", i:CATS.length }].map(({ color, id, i }) => (
               <div key={id} onClick={() => setSec(i)}
                 style={{ flex:1, height:3, borderRadius:2, cursor:"pointer",
-                  background: i===sec ? color : i<sec ? "#d1d5db" : "#f3f4f6",
+                  background: i===sec ? color : i<sec ? "#d1d5db" : "#F5F5F5",
                   transition: "background .2s"
                 }} />
             ))}
@@ -490,28 +493,28 @@ export default function App() {
         {/* Question sections */}
         {!isFeedbackStep && (
           <>
-            <div style={{ background:cat.bg, border:`1px solid ${cat.color}30`, borderRadius:10, padding:"12px 16px", marginBottom:18, display:"flex", gap:12, alignItems:"center" }}>
+            <div style={{ background:cat.bg, border:`1px solid ${cat.color}30`, borderRadius:2, padding:"12px 16px", marginBottom:18, display:"flex", gap:12, alignItems:"center" }}>
               <span style={{ fontSize:28 }}>{cat.icon}</span>
               <div>
-                <div style={{ fontWeight:700, color:"#1f2937", fontSize:15 }}>{cat.label}</div>
-                <div style={{ fontSize:12, color:"#6b7280" }}>{cat.desc}</div>
+                <div style={{ fontWeight:700, color:"#000000", fontSize:15 }}>{cat.label}</div>
+                <div style={{ fontSize:12, color:"#565656" }}>{cat.desc}</div>
               </div>
             </div>
             {cat.qs.map((q, qi) => (
-              <div key={q.id} style={{ ...S.card, marginBottom:14, border:`1px solid ${ans[q.id]!=null?cat.color+"55":"#e5e7eb"}`, transition:"border-color .15s" }}>
-                <p style={{ margin:"0 0 14px", fontSize:14, lineHeight:1.55, color:"#1f2937", fontWeight:500 }}>
-                  <span style={{ color:cat.color, fontWeight:800, marginRight:5 }}>{qi+1}.</span>{q.t}
+              <div key={q.id} style={{ ...S.card, marginBottom:14, border:`1px solid ${ans[q.id]!=null?cat.color+"55":"#E6E6E6"}`, transition:"border-color .15s" }}>
+                <p style={{ margin:"0 0 14px", fontSize:14, lineHeight:1.55, color:"#000000", fontWeight:500 }}>
+                  <span style={{ color:cat.color, fontWeight:700, marginRight:5 }}>{qi+1}.</span>{q.t}
                 </p>
                 <div style={{ display:"flex", gap:6 }}>
                   {[1,2,3,4,5].map(v => (
                     <button key={v} onClick={() => setAns(a => ({...a,[q.id]:v}))}
-                      style={{ flex:1, height:44, border:`2px solid ${ans[q.id]===v?cat.color:"#e5e7eb"}`, borderRadius:8, background:ans[q.id]===v?cat.color:"white", color:ans[q.id]===v?"white":"#374151", fontWeight:700, fontSize:16, cursor:"pointer" }}
+                      style={{ flex:1, height:44, border:`2px solid ${ans[q.id]===v?cat.color:"#E6E6E6"}`, borderRadius:2, background:ans[q.id]===v?cat.color:"white", color:ans[q.id]===v?"white":"#374151", fontWeight:700, fontSize:16, cursor:"pointer" }}
                     >{v}</button>
                   ))}
                 </div>
                 <div style={{ display:"flex", justifyContent:"space-between", marginTop:6 }}>
-                  <span style={{ fontSize:10, color:"#9ca3af" }}>1 — {q.lo}</span>
-                  <span style={{ fontSize:10, color:"#9ca3af" }}>{q.hi} — 5</span>
+                  <span style={{ fontSize:10, color:"#565656" }}>1 — {q.lo}</span>
+                  <span style={{ fontSize:10, color:"#565656" }}>{q.hi} — 5</span>
                 </div>
               </div>
             ))}
@@ -521,34 +524,34 @@ export default function App() {
         {/* Feedback step */}
         {isFeedbackStep && (
           <>
-            <div style={{ background:"#f5f3ff", border:"1px solid #8b5cf630", borderRadius:10, padding:"14px 18px", marginBottom:18, display:"flex", gap:12, alignItems:"flex-start" }}>
+            <div style={{ background:"#f5f3ff", border:"1px solid #8b5cf630", borderRadius:2, padding:"14px 18px", marginBottom:18, display:"flex", gap:12, alignItems:"flex-start" }}>
               <span style={{ fontSize:28 }}>💬</span>
               <div>
-                <div style={{ fontWeight:700, color:"#1f2937", fontSize:15 }}>Open Feedback</div>
-                <div style={{ fontSize:12, color:"#6b7280", marginTop:2, lineHeight:1.5 }}>
+                <div style={{ fontWeight:700, color:"#000000", fontSize:15 }}>Open Feedback</div>
+                <div style={{ fontSize:12, color:"#565656", marginTop:2, lineHeight:1.5 }}>
                   Optional and 100% anonymous. Share any questions, concerns, or suggestions. Responses are pooled with all staff feedback and analyzed by AI to surface common themes — no individual response is ever shown.
                 </div>
               </div>
             </div>
 
             <div style={{ ...S.card, marginBottom:14 }}>
-              <p style={{ margin:"0 0 12px", fontSize:14, fontWeight:600, color:"#1f2937" }}>
-                Is there anything else on your mind? <span style={{ color:"#9ca3af", fontWeight:400 }}>(optional)</span>
+              <p style={{ margin:"0 0 12px", fontSize:14, fontWeight:600, color:"#000000" }}>
+                Is there anything else on your mind? <span style={{ color:"#565656", fontWeight:400 }}>(optional)</span>
               </p>
               <textarea
                 value={feedback}
                 onChange={e => { const v = e.target.value.slice(0, FB_MAX); setFeedback(v); if (!v.trim()) setPostToWall(false); }}
                 placeholder="Share any questions, concerns, ideas, or general thoughts about your workplace experience…"
-                style={{ width:"100%", minHeight:140, padding:"12px", border:"1px solid #e5e7eb", borderRadius:10, fontSize:14, lineHeight:1.65, fontFamily:"system-ui, sans-serif", resize:"vertical", boxSizing:"border-box", outline:"none", color:"#1f2937" }}
+                style={{ width:"100%", minHeight:140, padding:"12px", border:"1px solid #E6E6E6", borderRadius:2, fontSize:14, lineHeight:1.65, fontFamily:BRAND_FONT, resize:"vertical", boxSizing:"border-box", outline:"none", color:"#000000" }}
               />
               <div style={{ display:"flex", justifyContent:"space-between", marginTop:6 }}>
-                <span style={{ fontSize:11, color:"#9ca3af" }}>Your response will only ever be seen in aggregate AI analysis — never individually.</span>
-                <span style={{ fontSize:11, color: feedback.length > FB_MAX*0.9 ? "#f97316" : "#9ca3af" }}>{feedback.length}/{FB_MAX}</span>
+                <span style={{ fontSize:11, color:"#565656" }}>Your response will only ever be seen in aggregate AI analysis — never individually.</span>
+                <span style={{ fontSize:11, color: feedback.length > FB_MAX*0.9 ? "#f97316" : "#E5E3DF" }}>{feedback.length}/{FB_MAX}</span>
               </div>
 
               {/* ── Community Wall opt-in checkbox ── */}
               {feedback.trim() && (
-                <label style={{ display:"flex", alignItems:"flex-start", gap:10, marginTop:14, padding:"12px 14px", background:"#fffbeb", border:"1px solid #f59e0b30", borderRadius:10, cursor:"pointer" }}>
+                <label style={{ display:"flex", alignItems:"flex-start", gap:10, marginTop:14, padding:"12px 14px", background:"#fffbeb", border:"1px solid #f59e0b30", borderRadius:2, cursor:"pointer" }}>
                   <input
                     type="checkbox"
                     checked={postToWall}
@@ -567,8 +570,8 @@ export default function App() {
               )}
             </div>
 
-            <div style={{ ...S.card, background:"#f9fafb", marginBottom:14 }}>
-              <div style={{ fontSize:12, color:"#6b7280", lineHeight:1.6 }}>
+            <div style={{ ...S.card, background:"#F5F5F5", marginBottom:14 }}>
+              <div style={{ fontSize:12, color:"#565656", lineHeight:1.6 }}>
                 ✅ <b>All 20 questions answered.</b> Click Submit below to record your responses.
                 {feedback.trim() ? " Your feedback will also be anonymously included in the AI analysis." : " You can also add optional open feedback above."}
                 {feedback.trim() && postToWall ? " Your feedback will also appear on the Community Wall." : ""}
@@ -582,13 +585,13 @@ export default function App() {
             <button
               onClick={() => { if (doneQ === totalQ) setScreen("wall"); }}
               disabled={doneQ < totalQ}
-              style={{ ...S.btnS, marginBottom:20, background: doneQ === totalQ ? "#fffbeb" : "#f9fafb", border:`1px solid ${doneQ === totalQ ? "#f59e0b40" : "#e5e7eb"}`, color: doneQ === totalQ ? "#92400e" : "#9ca3af", display:"flex", alignItems:"center", justifyContent:"center", gap:8, cursor: doneQ === totalQ ? "pointer" : "not-allowed", opacity: doneQ === totalQ ? 1 : 0.6 }}
+              style={{ ...S.btnS, marginBottom:20, background: doneQ === totalQ ? "#fffbeb" : "#F5F5F5", border:`1px solid ${doneQ === totalQ ? "#f59e0b40" : "#E6E6E6"}`, color: doneQ === totalQ ? "#92400e" : "#E5E3DF", display:"flex", alignItems:"center", justifyContent:"center", gap:8, cursor: doneQ === totalQ ? "pointer" : "not-allowed", opacity: doneQ === totalQ ? 1 : 0.6 }}
             >
               <span style={{ fontSize:18 }}>🧱</span>
               <span>View Community Wall{wallPosts.length > 0 ? ` (${wallPosts.length} post${wallPosts.length !== 1 ? "s" : ""})` : ""}</span>
             </button>
             {doneQ < totalQ && (
-              <p style={{ fontSize:11, color:"#9ca3af", textAlign:"center", marginTop:-12, marginBottom:16 }}>
+              <p style={{ fontSize:11, color:"#565656", textAlign:"center", marginTop:-12, marginBottom:16 }}>
                 Complete all survey questions to access the Community Wall.
               </p>
             )}
@@ -606,7 +609,7 @@ export default function App() {
             </button>
           ) : (
             <button onClick={submit} disabled={busy || doneQ < totalQ}
-              style={{ flex:2, ...S.btnP, width:"auto", background: doneQ===totalQ&&!busy?"#1d4ed8":"#9ca3af", cursor: doneQ===totalQ&&!busy?"pointer":"not-allowed" }}
+              style={{ flex:2, ...S.btnP, width:"auto", background: doneQ===totalQ&&!busy?"#000000":"#E6E6E6", cursor: doneQ===totalQ&&!busy?"pointer":"not-allowed" }}
             >
               {busy ? "Submitting…" : "Submit Survey ✓"}
             </button>
@@ -631,37 +634,37 @@ export default function App() {
       </div>
 
       <div style={{ ...S.card, textAlign:"center", marginBottom:16 }}>
-        <div style={{ fontSize:11, fontWeight:700, color:"#9ca3af", textTransform:"uppercase", letterSpacing:".08em", marginBottom:12 }}>Overall Pulse Score</div>
+        <div style={{ fontSize:11, fontWeight:700, color:"#565656", textTransform:"uppercase", letterSpacing:".08em", marginBottom:12 }}>Overall Pulse Score</div>
         <div style={{ display:"flex", justifyContent:"center" }}>
           <Gauge score={disp.overall??0} color={sc(myS.overall)} size={180} />
         </div>
-        <div style={{ fontSize:20, fontWeight:800, color:sc(myS.overall), marginTop:6 }}>{sl(myS.overall)}</div>
-        {teamAvg && <div style={{ fontSize:12, color:"#9ca3af", marginTop:4 }}>Team average: {teamAvg.overall}/100</div>}
+        <div style={{ fontSize:20, fontWeight:700, color:sc(myS.overall), marginTop:6 }}>{sl(myS.overall)}</div>
+        {teamAvg && <div style={{ fontSize:12, color:"#565656", marginTop:4 }}>Team average: {teamAvg.overall}/100</div>}
       </div>
 
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:16 }}>
         {CATS.map(c => (
           <div key={c.id} style={{ ...S.card, textAlign:"center" }}>
             <div style={{ fontSize:22 }}>{c.icon}</div>
-            <div style={{ fontSize:13, fontWeight:700, color:"#374151", margin:"4px 0 8px" }}>{c.label}</div>
+            <div style={{ fontSize:13, fontWeight:700, color:"#000000", margin:"4px 0 8px" }}>{c.label}</div>
             <div style={{ display:"flex", justifyContent:"center" }}>
               <Gauge score={disp[c.id]??0} color={c.color} size={110} />
             </div>
             <div style={{ fontSize:11, fontWeight:700, color:sc(myS[c.id]), marginTop:6 }}>{sl(myS[c.id])}</div>
-            {teamAvg && <div style={{ fontSize:10, color:"#9ca3af", marginTop:2 }}>Team avg: {teamAvg[c.id]}</div>}
+            {teamAvg && <div style={{ fontSize:10, color:"#565656", marginTop:2 }}>Team avg: {teamAvg[c.id]}</div>}
           </div>
         ))}
       </div>
 
       <div style={{ ...S.card, marginBottom:16 }}>
-        <div style={{ fontSize:13, fontWeight:700, color:"#374151", marginBottom:14 }}>Score Breakdown</div>
+        <div style={{ fontSize:13, fontWeight:700, color:"#000000", marginBottom:14 }}>Score Breakdown</div>
         {CATS.map(c => (
           <div key={c.id} style={{ marginBottom:12 }}>
             <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-              <span style={{ fontSize:13, color:"#374151" }}>{c.icon} {c.label}</span>
+              <span style={{ fontSize:13, color:"#000000" }}>{c.icon} {c.label}</span>
               <span style={{ fontSize:13, fontWeight:700, color:c.color }}>{myS[c.id]}/100</span>
             </div>
-            <div style={{ height:8, background:"#f3f4f6", borderRadius:4 }}>
+            <div style={{ height:8, background:"#F5F5F5", borderRadius:4 }}>
               <div style={{ height:"100%", width:`${disp[c.id]??0}%`, background:c.color, borderRadius:4 }} />
             </div>
           </div>
@@ -669,12 +672,12 @@ export default function App() {
       </div>
 
       <div style={{ ...S.card, marginBottom:16 }}>
-        <div style={{ fontSize:11, fontWeight:700, color:"#9ca3af", textTransform:"uppercase", letterSpacing:".05em", marginBottom:10 }}>Score Reference</div>
+        <div style={{ fontSize:11, fontWeight:700, color:"#565656", textTransform:"uppercase", letterSpacing:".05em", marginBottom:10 }}>Score Reference</div>
         <div style={{ display:"flex", flexWrap:"wrap", gap:10 }}>
           {[["#10b981","80–100","Excellent"],["#84cc16","65–79","Good"],["#f59e0b","50–64","Fair"],["#f97316","35–49","Needs Attention"],["#ef4444","0–34","Critical"]].map(([col,r,l]) => (
             <div key={l} style={{ display:"flex", alignItems:"center", gap:5 }}>
               <div style={{ width:9, height:9, borderRadius:"50%", background:col }} />
-              <span style={{ fontSize:11, color:"#6b7280" }}><b>{l}</b> <span style={{ color:"#9ca3af" }}>({r})</span></span>
+              <span style={{ fontSize:11, color:"#565656" }}><b>{l}</b> <span style={{ color:"#565656" }}>({r})</span></span>
             </div>
           ))}
         </div>
@@ -706,34 +709,34 @@ export default function App() {
             return (
               <div key={c.id} style={{ ...S.card, textAlign:"center", padding:"14px 8px" }}>
                 <div style={{ fontSize:20 }}>{c.icon}</div>
-                <div style={{ fontSize:24, fontWeight:800, color:sc(val), margin:"4px 0 2px", lineHeight:1 }}>{val}</div>
-                <div style={{ fontSize:10, color:"#9ca3af", lineHeight:1.3 }}>{c.label}</div>
+                <div style={{ fontSize:24, fontWeight:700, color:sc(val), margin:"4px 0 2px", lineHeight:1 }}>{val}</div>
+                <div style={{ fontSize:10, color:"#565656", lineHeight:1.3 }}>{c.label}</div>
                 <div style={{ fontSize:10, fontWeight:700, color:sc(val), marginTop:5 }}>{sl(val)}</div>
               </div>
             );
           })}
         </div>
       ) : (
-        <div style={{ ...S.card, textAlign:"center", color:"#9ca3af", padding:"32px", marginBottom:20 }}>
+        <div style={{ ...S.card, textAlign:"center", color:"#565656", padding:"32px", marginBottom:20 }}>
           No submissions yet — take the survey to start tracking!
         </div>
       )}
 
       {/* Trend chart */}
       <div style={{ ...S.card, marginBottom:18 }}>
-        <div style={{ fontWeight:700, color:"#1f2937", fontSize:14, marginBottom:16 }}>Score Trends Over Time</div>
+        <div style={{ fontWeight:700, color:"#000000", fontSize:14, marginBottom:16 }}>Score Trends Over Time</div>
         {cd.length >= 2 ? (
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={cd} margin={{ top:5, right:10, left:-24, bottom:5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-              <XAxis dataKey="date" tick={{ fontSize:11, fill:"#9ca3af" }} />
-              <YAxis domain={[0,100]} tick={{ fontSize:11, fill:"#9ca3af" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#F5F5F5" />
+              <XAxis dataKey="date" tick={{ fontSize:11, fill:"#565656" }} />
+              <YAxis domain={[0,100]} tick={{ fontSize:11, fill:"#565656" }} />
               <Tooltip
-                contentStyle={{ fontSize:12, borderRadius:8, border:"1px solid #e5e7eb", boxShadow:"0 2px 8px rgba(0,0,0,.08)" }}
+                contentStyle={{ fontSize:12, borderRadius:2, border:"1px solid #E6E6E6", boxShadow:"0 2px 8px rgba(0,0,0,.08)" }}
                 labelFormatter={(lbl, p) => `${lbl} · ${p?.[0]?.payload?.n??0} response${(p?.[0]?.payload?.n??0)!==1?"s":""}`}
               />
               <Legend wrapperStyle={{ fontSize:12 }} />
-              <Line type="monotone" dataKey="Overall"     stroke="#2563eb" strokeWidth={2.5} dot={{ r:4, fill:"#2563eb" }} activeDot={{ r:7 }} />
+              <Line type="monotone" dataKey="Overall"     stroke="#000000" strokeWidth={2.5} dot={{ r:4, fill:"#000000" }} activeDot={{ r:7 }} />
               <Line type="monotone" dataKey="Wellness"    stroke="#10b981" strokeWidth={1.5} dot={{ r:3 }} strokeDasharray="5 3" />
               <Line type="monotone" dataKey="Happiness"   stroke="#f59e0b" strokeWidth={1.5} dot={{ r:3 }} strokeDasharray="5 3" />
               <Line type="monotone" dataKey="Stress"      stroke="#ef4444" strokeWidth={1.5} dot={{ r:3 }} strokeDasharray="5 3" />
@@ -741,7 +744,7 @@ export default function App() {
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <div style={{ height:180, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", color:"#9ca3af", fontSize:13, textAlign:"center", gap:8 }}>
+          <div style={{ height:180, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", color:"#565656", fontSize:13, textAlign:"center", gap:8 }}>
             <div style={{ fontSize:32 }}>📈</div>
             Submit surveys on at least two different dates to see trend lines.
           </div>
@@ -751,11 +754,11 @@ export default function App() {
       {/* Category averages bar */}
       {teamAvg && (
         <div style={{ ...S.card, marginBottom:18 }}>
-          <div style={{ fontWeight:700, color:"#1f2937", fontSize:14, marginBottom:14 }}>Category Averages — All Time</div>
+          <div style={{ fontWeight:700, color:"#000000", fontSize:14, marginBottom:14 }}>Category Averages — All Time</div>
           {CATS.map(c => (
             <div key={c.id} style={{ marginBottom:12 }}>
               <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-                <span style={{ fontSize:13, color:"#374151" }}>{c.icon} {c.label}</span>
+                <span style={{ fontSize:13, color:"#000000" }}>{c.icon} {c.label}</span>
                 <span style={{ fontSize:13, fontWeight:700, color:c.color }}>{teamAvg[c.id]}/100 — {sl(teamAvg[c.id])}</span>
               </div>
               <MiniBar value={teamAvg[c.id]} color={c.color} />
@@ -772,20 +775,20 @@ export default function App() {
       {/* History table */}
       {subs.length > 0 && (
         <div style={{ ...S.card, marginBottom:18, overflowX:"auto" }}>
-          <div style={{ fontWeight:700, color:"#1f2937", fontSize:14, marginBottom:12 }}>All Submissions (newest first)</div>
+          <div style={{ fontWeight:700, color:"#000000", fontSize:14, marginBottom:12 }}>All Submissions (newest first)</div>
           <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
             <thead>
               <tr>
                 {["Date","Overall",...CATS.map(c=>c.icon+" "+c.label)].map(h => (
-                  <th key={h} style={{ padding:"7px 10px", textAlign:"center", color:"#9ca3af", fontWeight:600, borderBottom:"1px solid #e5e7eb", whiteSpace:"nowrap", fontSize:11 }}>{h}</th>
+                  <th key={h} style={{ padding:"7px 10px", textAlign:"center", color:"#565656", fontWeight:600, borderBottom:"1px solid #E6E6E6", whiteSpace:"nowrap", fontSize:11 }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {[...subs].reverse().map((s,i) => (
-                <tr key={i} style={{ borderBottom:"1px solid #f9fafb" }}>
-                  <td style={{ padding:"6px 10px", color:"#6b7280", whiteSpace:"nowrap" }}>{s.date}</td>
-                  <td style={{ padding:"6px 10px", textAlign:"center", fontWeight:800, color:sc(s.overall) }}>{s.overall}</td>
+                <tr key={i} style={{ borderBottom:"1px solid #F5F5F5" }}>
+                  <td style={{ padding:"6px 10px", color:"#565656", whiteSpace:"nowrap" }}>{s.date}</td>
+                  <td style={{ padding:"6px 10px", textAlign:"center", fontWeight:700, color:sc(s.overall) }}>{s.overall}</td>
                   {CATS.map(c => (
                     <td key={c.id} style={{ padding:"6px 10px", textAlign:"center", fontWeight:600, color:sc(s[c.id]) }}>{s[c.id]}</td>
                   ))}
@@ -845,9 +848,9 @@ export default function App() {
 
       {/* Wall posts */}
       {wallPosts.length === 0 ? (
-        <div style={{ ...S.card, textAlign:"center", padding:"40px 20px", color:"#9ca3af" }}>
+        <div style={{ ...S.card, textAlign:"center", padding:"40px 20px", color:"#565656" }}>
           <div style={{ fontSize:48, marginBottom:12 }}>🧱</div>
-          <div style={{ fontWeight:700, color:"#6b7280", fontSize:15, marginBottom:6 }}>The wall is empty — for now</div>
+          <div style={{ fontWeight:700, color:"#565656", fontSize:15, marginBottom:6 }}>The wall is empty — for now</div>
           <div style={{ fontSize:13, lineHeight:1.6 }}>
             When staff choose to share their feedback on the Community Wall, anonymous posts will appear here. Be the first to add your voice!
           </div>
@@ -855,12 +858,12 @@ export default function App() {
       ) : (
         <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
           {wallPosts.map(post => (
-            <div key={post.id} style={{ ...S.card, border:"1px solid #e5e7eb" }}>
-              <p style={{ margin:"0 0 12px", fontSize:14, color:"#1f2937", lineHeight:1.65, whiteSpace:"pre-wrap", wordBreak:"break-word" }}>
+            <div key={post.id} style={{ ...S.card, border:"1px solid #E6E6E6" }}>
+              <p style={{ margin:"0 0 12px", fontSize:14, color:"#000000", lineHeight:1.65, whiteSpace:"pre-wrap", wordBreak:"break-word" }}>
                 {post.text}
               </p>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                <span style={{ fontSize:11, color:"#d1d5db" }}>
+                <span style={{ fontSize:11, color:"#E5E3DF" }}>
                   {post.date} · Anonymous
                 </span>
                 <button
@@ -869,10 +872,10 @@ export default function App() {
                   style={{
                     display:"flex", alignItems:"center", gap:5,
                     padding:"5px 12px",
-                    background:"#f9fafb",
-                    border:"1px solid #e5e7eb",
+                    background:"#F5F5F5",
+                    border:"1px solid #E6E6E6",
                     borderRadius:20, fontSize:13, cursor:"pointer",
-                    color:"#6b7280",
+                    color:"#565656",
                     fontWeight:500,
                     transition:"all .15s ease"
                   }}
@@ -885,7 +888,7 @@ export default function App() {
         </div>
       )}
 
-      <p style={{ textAlign:"center", fontSize:11, color:"#d1d5db", marginTop:18 }}>
+      <p style={{ textAlign:"center", fontSize:11, color:"#E5E3DF", marginTop:18 }}>
         All posts and likes are fully anonymous — no identifying information is stored.
       </p>
     </div></div>
@@ -895,11 +898,11 @@ export default function App() {
 }
 
 const S = {
-  page: { minHeight:"100vh", background:"#f8fafc", fontFamily:"system-ui, -apple-system, 'Segoe UI', sans-serif", padding:"20px 16px" },
+  page: { minHeight:"100vh", background:"#F5F5F5", fontFamily:BRAND_FONT, padding:"20px 16px" },
   wrap: { maxWidth:600, margin:"0 auto" },
-  card: { background:"white", borderRadius:12, padding:"16px 18px", border:"1px solid #e5e7eb", boxShadow:"0 1px 3px rgba(0,0,0,.05)" },
-  h1:   { fontSize:26, fontWeight:800, color:"#1f2937", margin:"0 0 10px", lineHeight:1.2 },
-  sub:  { fontSize:14, color:"#6b7280", margin:0, lineHeight:1.6 },
-  btnP: { display:"block", width:"100%", padding:"13px", background:"#1d4ed8", color:"white", border:"none", borderRadius:10, fontSize:15, fontWeight:700, cursor:"pointer" },
-  btnS: { display:"block", width:"100%", padding:"12px", background:"white", color:"#374151", border:"1px solid #e5e7eb", borderRadius:10, fontSize:14, fontWeight:600, cursor:"pointer" },
+  card: { background:"#FFFFFF", borderRadius:2, padding:"16px 18px", border:"1px solid #E6E6E6", boxShadow:"0 1px 3px rgba(0,0,0,.05)" },
+  h1:   { fontSize:28, fontWeight:700, color:"#000000", margin:"0 0 10px", lineHeight:1.1, letterSpacing:"0.05em" },
+  sub:  { fontSize:16, color:"#565656", margin:0, lineHeight:1.6 },
+  btnP: { display:"block", width:"100%", padding:"13px", background:"#000000", color:"#FFFFFF", border:"none", borderRadius:2, fontSize:16, fontWeight:700, cursor:"pointer", minHeight:42 },
+  btnS: { display:"block", width:"100%", padding:"12px", background:"#FFFFFF", color:"#565656", border:"1px solid #E6E6E6", borderRadius:2, fontSize:14, fontWeight:500, cursor:"pointer", minHeight:42 },
 };
