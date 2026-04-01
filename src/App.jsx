@@ -861,11 +861,12 @@ export default function App() {
                   onClick={() => thumbsUp(post.id)}
                   style={{
                     display:"flex", alignItems:"center", gap:5,
-                    padding:"5px 12px", background:post.likes > 0 ? "#eff6ff" : "#f9fafb",
-                    border:`1px solid ${post.likes > 0 ? "#3b82f640" : "#e5e7eb"}`,
+                    padding:"5px 12px",
+                    background:"#f9fafb",
+                    border:"1px solid #e5e7eb",
                     borderRadius:20, fontSize:13, cursor:"pointer",
-                    color: post.likes > 0 ? "#2563eb" : "#6b7280",
-                    fontWeight: post.likes > 0 ? 700 : 500,
+                    color:"#6b7280",
+                    fontWeight:500,
                     transition:"all .15s ease"
                   }}
                 >
