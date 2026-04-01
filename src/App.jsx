@@ -349,7 +349,7 @@ export default function App() {
     let current = 0;
     try {
       const res = await window.storage.get(key);
-      if (res?.value) current = JSON.parse(res.value).count || 0;
+      if (res?.value) current = Number(JSON.parse(res.value).count) || 0;
     } catch {}
     const newCount = current + 1;
     try {
@@ -537,7 +537,7 @@ export default function App() {
               </p>
               <textarea
                 value={feedback}
-                onChange={e => setFeedback(e.target.value.slice(0, FB_MAX))}
+                onChange={e => { const v = e.target.value.slice(0, FB_MAX); setFeedback(v); if (!v.trim()) setPostToWall(false); }}
                 placeholder="Share any questions, concerns, ideas, or general thoughts about your workplace experience…"
                 style={{ width:"100%", minHeight:140, padding:"12px", border:"1px solid #e5e7eb", borderRadius:10, fontSize:14, lineHeight:1.65, fontFamily:"system-ui, sans-serif", resize:"vertical", boxSizing:"border-box", outline:"none", color:"#1f2937" }}
               />
@@ -577,15 +577,21 @@ export default function App() {
 
             {/* ── Community Wall access button ──
                 NOTE: This is the ONLY place the Community Wall can be accessed.
-                Staff must complete the survey to reach this step and view the wall.
+                Staff must complete ALL survey questions to view the wall.
                 Even if they don't submit feedback, they can still browse the wall. */}
             <button
-              onClick={() => setScreen("wall")}
-              style={{ ...S.btnS, marginBottom:20, background:"#fffbeb", border:"1px solid #f59e0b40", color:"#92400e", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}
+              onClick={() => { if (doneQ === totalQ) setScreen("wall"); }}
+              disabled={doneQ < totalQ}
+              style={{ ...S.btnS, marginBottom:20, background: doneQ === totalQ ? "#fffbeb" : "#f9fafb", border:`1px solid ${doneQ === totalQ ? "#f59e0b40" : "#e5e7eb"}`, color: doneQ === totalQ ? "#92400e" : "#9ca3af", display:"flex", alignItems:"center", justifyContent:"center", gap:8, cursor: doneQ === totalQ ? "pointer" : "not-allowed", opacity: doneQ === totalQ ? 1 : 0.6 }}
             >
               <span style={{ fontSize:18 }}>🧱</span>
               <span>View Community Wall{wallPosts.length > 0 ? ` (${wallPosts.length} post${wallPosts.length !== 1 ? "s" : ""})` : ""}</span>
             </button>
+            {doneQ < totalQ && (
+              <p style={{ fontSize:11, color:"#9ca3af", textAlign:"center", marginTop:-12, marginBottom:16 }}>
+                Complete all survey questions to access the Community Wall.
+              </p>
+            )}
           </>
         )}
 
@@ -830,10 +836,10 @@ export default function App() {
       <div style={{ ...S.card, background:"#fffbeb", border:"1px solid #f59e0b30", marginBottom:18 }}>
         <div style={{ fontSize:13, fontWeight:700, color:"#92400e", marginBottom:8 }}>ℹ️ How the Community Wall Works</div>
         <ul style={{ margin:0, paddingLeft:18, fontSize:12, color:"#92400e", lineHeight:1.7 }}>
-          <li>Posts are <b>100% anonymous</b> — no names, IPs, or identifiers are ever recorded.</li>
+          <li>Posts are <b>100% anonymous</b> — this app does not store names, IP addresses, or any other identifiers.</li>
           <li>Only staff who complete all survey questions can access this wall.</li>
           <li>Use the <b>👍 thumbs-up</b> to show support for a post. Likes are also anonymous.</li>
-          <li>Feedback is sent to management regardless — posting here is an <b>optional extra</b> so colleagues can see shared concerns.</li>
+          <li>When you submit feedback, it is sent to management. Posting here is an <b>optional extra</b> so colleagues can see shared concerns.</li>
         </ul>
       </div>
 
@@ -859,6 +865,7 @@ export default function App() {
                 </span>
                 <button
                   onClick={() => thumbsUp(post.id)}
+                  aria-label={`Thumbs up this post${post.likes > 0 ? `, ${post.likes} like${post.likes !== 1 ? "s" : ""}` : ""}`}
                   style={{
                     display:"flex", alignItems:"center", gap:5,
                     padding:"5px 12px",
