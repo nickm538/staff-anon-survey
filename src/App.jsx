@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
-const PFXKEY = "ws_v1_";
-const FBKEY  = "wsfb_v1_";
-const FB_MAX = 600;
+const PFXKEY  = "ws_v1_";
+const FBKEY   = "wsfb_v1_";
+const CWKEY   = "cw_v1_";     // Community Wall posts (anonymous)
+const CWLIKE  = "cwlikes_v1_"; // Community Wall thumbs-up counts
+const FB_MAX  = 600;
 
 const CATS = [
   {
@@ -232,14 +234,19 @@ export default function App() {
   const [ready,        setReady]        = useState(false);
   const [busy,         setBusy]         = useState(false);
   const [anim,         setAnim]         = useState(null);
+  /* ── Community Wall state ── */
+  const [wallPosts,    setWallPosts]    = useState([]);   // All community wall posts
+  const [postToWall,   setPostToWall]   = useState(false); // Checkbox: also share on wall
 
   useEffect(() => { load(); }, []);
 
   async function load() {
     try {
-      const [sr, fr] = await Promise.all([
+      const [sr, fr, cwRes, cwLikeRes] = await Promise.all([
         window.storage.list(PFXKEY),
         window.storage.list(FBKEY),
+        window.storage.list(CWKEY),
+        window.storage.list(CWLIKE),
       ]);
       if (sr?.keys?.length) {
         const rows = await Promise.all(sr.keys.map(k => window.storage.get(k)));
@@ -248,6 +255,31 @@ export default function App() {
       if (fr?.keys?.length) {
         const frows = await Promise.all(fr.keys.map(k => window.storage.get(k)));
         setAllFeedbacks(frows.filter(x=>x?.value).map(x=>{try{return JSON.parse(x.value);}catch{return null;}}).filter(Boolean).sort((a,b)=>a.timestamp-b.timestamp));
+      }
+      /* ── Load community wall posts & their thumbs-up counts ── */
+      const likesMap = {};
+      if (cwLikeRes?.keys?.length) {
+        const likeRows = await Promise.all(cwLikeRes.keys.map(k => window.storage.get(k)));
+        for (const lr of likeRows) {
+          if (lr?.value) {
+            try {
+              const postId = lr.key.replace(CWLIKE, "");
+              likesMap[postId] = JSON.parse(lr.value).count || 0;
+            } catch {}
+          }
+        }
+      }
+      if (cwRes?.keys?.length) {
+        const cwRows = await Promise.all(cwRes.keys.map(k => window.storage.get(k)));
+        const posts = cwRows.filter(x => x?.value).map(x => {
+          try {
+            const parsed = JSON.parse(x.value);
+            parsed.id = x.key.replace(CWKEY, "");
+            parsed.likes = likesMap[parsed.id] || 0;
+            return parsed;
+          } catch { return null; }
+        }).filter(Boolean).sort((a, b) => b.timestamp - a.timestamp);
+        setWallPosts(posts);
       }
     } catch {}
     setReady(true);
@@ -283,6 +315,14 @@ export default function App() {
         await window.storage.set(`${FBKEY}${ts}_${rnd}`, JSON.stringify(fbEntry));
         setAllFeedbacks(p => [...p, fbEntry]);
       } catch {}
+      /* ── Community Wall: if user opted in, also post to the wall ── */
+      if (postToWall) {
+        const cwEntry = { timestamp: ts, date, text: feedback.trim() };
+        try {
+          await window.storage.set(`${CWKEY}${ts}_${rnd}`, JSON.stringify(cwEntry));
+          setWallPosts(p => [{ ...cwEntry, id: `${ts}_${rnd}`, likes: 0 }, ...p]);
+        } catch {}
+      }
     }
     const zeros = Object.fromEntries(Object.keys(s).map(k=>[k,0]));
     setAnim(zeros);
@@ -295,6 +335,27 @@ export default function App() {
     }, 16);
     setBusy(false);
     setScreen("results");
+  }
+
+  /**
+   * Community Wall – Anonymous Thumbs Up
+   * Reads the current like count for a post, increments it by 1,
+   * and writes back. Each like is anonymous — no user tracking.
+   * Note: The read-modify-write is not atomic, so concurrent likes could
+   * lose a count. Acceptable for this in-memory, low-traffic use case.
+   */
+  async function thumbsUp(postId) {
+    const key = `${CWLIKE}${postId}`;
+    let current = 0;
+    try {
+      const res = await window.storage.get(key);
+      if (res?.value) current = Number(JSON.parse(res.value).count) || 0;
+    } catch {}
+    const newCount = current + 1;
+    try {
+      await window.storage.set(key, JSON.stringify({ count: newCount }));
+      setWallPosts(posts => posts.map(p => p.id === postId ? { ...p, likes: newCount } : p));
+    } catch {}
   }
 
   const allQs   = CATS.flatMap(c => c.qs);
@@ -380,7 +441,7 @@ export default function App() {
         </div>
       )}
 
-      <button onClick={() => { setAns({}); setFeedback(""); setSec(0); setScreen("survey"); }} style={{ ...S.btnP, marginBottom:10 }}>
+      <button onClick={() => { setAns({}); setFeedback(""); setPostToWall(false); setSec(0); setScreen("survey"); }} style={{ ...S.btnP, marginBottom:10 }}>
         Take the Survey →
       </button>
       {subs.length > 0 && (
@@ -476,7 +537,7 @@ export default function App() {
               </p>
               <textarea
                 value={feedback}
-                onChange={e => setFeedback(e.target.value.slice(0, FB_MAX))}
+                onChange={e => { const v = e.target.value.slice(0, FB_MAX); setFeedback(v); if (!v.trim()) setPostToWall(false); }}
                 placeholder="Share any questions, concerns, ideas, or general thoughts about your workplace experience…"
                 style={{ width:"100%", minHeight:140, padding:"12px", border:"1px solid #e5e7eb", borderRadius:10, fontSize:14, lineHeight:1.65, fontFamily:"system-ui, sans-serif", resize:"vertical", boxSizing:"border-box", outline:"none", color:"#1f2937" }}
               />
@@ -484,14 +545,53 @@ export default function App() {
                 <span style={{ fontSize:11, color:"#9ca3af" }}>Your response will only ever be seen in aggregate AI analysis — never individually.</span>
                 <span style={{ fontSize:11, color: feedback.length > FB_MAX*0.9 ? "#f97316" : "#9ca3af" }}>{feedback.length}/{FB_MAX}</span>
               </div>
+
+              {/* ── Community Wall opt-in checkbox ── */}
+              {feedback.trim() && (
+                <label style={{ display:"flex", alignItems:"flex-start", gap:10, marginTop:14, padding:"12px 14px", background:"#fffbeb", border:"1px solid #f59e0b30", borderRadius:10, cursor:"pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={postToWall}
+                    onChange={e => setPostToWall(e.target.checked)}
+                    style={{ marginTop:2, accentColor:"#f59e0b", width:16, height:16, cursor:"pointer" }}
+                  />
+                  <div>
+                    <div style={{ fontSize:13, fontWeight:700, color:"#92400e" }}>
+                      🧱 Also share on the Community Wall
+                    </div>
+                    <div style={{ fontSize:11, color:"#92400e", marginTop:2, lineHeight:1.5 }}>
+                      Post your feedback anonymously on the staff Community Wall so fellow staff can see it and show support with a 👍. Your identity is never recorded — this is 100% anonymous. You can also just send it to management above without posting to the wall.
+                    </div>
+                  </div>
+                </label>
+              )}
             </div>
 
-            <div style={{ ...S.card, background:"#f9fafb", marginBottom:20 }}>
+            <div style={{ ...S.card, background:"#f9fafb", marginBottom:14 }}>
               <div style={{ fontSize:12, color:"#6b7280", lineHeight:1.6 }}>
                 ✅ <b>All 20 questions answered.</b> Click Submit below to record your responses.
                 {feedback.trim() ? " Your feedback will also be anonymously included in the AI analysis." : " You can also add optional open feedback above."}
+                {feedback.trim() && postToWall ? " Your feedback will also appear on the Community Wall." : ""}
               </div>
             </div>
+
+            {/* ── Community Wall access button ──
+                NOTE: This is the ONLY place the Community Wall can be accessed.
+                Staff must complete ALL survey questions to view the wall.
+                Even if they don't submit feedback, they can still browse the wall. */}
+            <button
+              onClick={() => { if (doneQ === totalQ) setScreen("wall"); }}
+              disabled={doneQ < totalQ}
+              style={{ ...S.btnS, marginBottom:20, background: doneQ === totalQ ? "#fffbeb" : "#f9fafb", border:`1px solid ${doneQ === totalQ ? "#f59e0b40" : "#e5e7eb"}`, color: doneQ === totalQ ? "#92400e" : "#9ca3af", display:"flex", alignItems:"center", justifyContent:"center", gap:8, cursor: doneQ === totalQ ? "pointer" : "not-allowed", opacity: doneQ === totalQ ? 1 : 0.6 }}
+            >
+              <span style={{ fontSize:18 }}>🧱</span>
+              <span>View Community Wall{wallPosts.length > 0 ? ` (${wallPosts.length} post${wallPosts.length !== 1 ? "s" : ""})` : ""}</span>
+            </button>
+            {doneQ < totalQ && (
+              <p style={{ fontSize:11, color:"#9ca3af", textAlign:"center", marginTop:-12, marginBottom:16 }}>
+                Complete all survey questions to access the Community Wall.
+              </p>
+            )}
           </>
         )}
 
@@ -582,7 +682,7 @@ export default function App() {
 
       <div style={{ display:"flex", gap:10 }}>
         <button onClick={() => setScreen("dashboard")} style={{ flex:1, ...S.btnP, width:"auto" }}>📊 Team Trends</button>
-        <button onClick={() => { setAns({}); setFeedback(""); setSec(0); setScreen("survey"); }} style={{ flex:1, ...S.btnS, width:"auto" }}>Retake</button>
+        <button onClick={() => { setAns({}); setFeedback(""); setPostToWall(false); setSec(0); setScreen("survey"); }} style={{ flex:1, ...S.btnS, width:"auto" }}>Retake</button>
       </div>
     </div></div>
   );
@@ -696,9 +796,98 @@ export default function App() {
         </div>
       )}
 
-      <button onClick={() => { setAns({}); setFeedback(""); setSec(0); setScreen("survey"); }} style={S.btnP}>
+      <button onClick={() => { setAns({}); setFeedback(""); setPostToWall(false); setSec(0); setScreen("survey"); }} style={S.btnP}>
         + Take New Survey
       </button>
+    </div></div>
+  );
+
+  /* ── Community Wall ──
+     An anonymous, identity-free virtual wall where staff who have completed the
+     survey can view and optionally post their feedback publicly (still anonymous).
+     Accessible ONLY from the feedback step (the last survey step).
+     Features:
+       • Anonymous posts — no names, IDs, or identifying info are stored
+       • Thumbs-up (👍) — anonymous "like" button similar to Facebook
+       • Read-only access available even if user doesn't post anything
+       • All data stored with cw_v1_ (posts) and cwlikes_v1_ (likes) prefixes
+  */
+  if (screen === "wall") return (
+    <div style={S.page}><div style={S.wrap}>
+      {/* Header */}
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:22 }}>
+        <div>
+          <h2 style={{ ...S.h1, fontSize:22, display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:28 }}>🧱</span> Community Wall
+          </h2>
+          <p style={{ ...S.sub, marginTop:4, fontSize:13 }}>
+            Anonymous staff voices — 100% identity-free
+          </p>
+        </div>
+        <button
+          onClick={() => { setSec(CATS.length); setScreen("survey"); }}
+          style={{ ...S.btnS, width:"auto", padding:"7px 14px", fontSize:13 }}
+        >
+          ← Back
+        </button>
+      </div>
+
+      {/* How it works */}
+      <div style={{ ...S.card, background:"#fffbeb", border:"1px solid #f59e0b30", marginBottom:18 }}>
+        <div style={{ fontSize:13, fontWeight:700, color:"#92400e", marginBottom:8 }}>ℹ️ How the Community Wall Works</div>
+        <ul style={{ margin:0, paddingLeft:18, fontSize:12, color:"#92400e", lineHeight:1.7 }}>
+          <li>Posts are <b>100% anonymous</b> — this app does not store names, IP addresses, or any other identifiers.</li>
+          <li>Only staff who complete all survey questions can access this wall.</li>
+          <li>Use the <b>👍 thumbs-up</b> to show support for a post. Likes are also anonymous.</li>
+          <li>When you submit feedback, it is sent to management. Posting here is an <b>optional extra</b> so colleagues can see shared concerns.</li>
+        </ul>
+      </div>
+
+      {/* Wall posts */}
+      {wallPosts.length === 0 ? (
+        <div style={{ ...S.card, textAlign:"center", padding:"40px 20px", color:"#9ca3af" }}>
+          <div style={{ fontSize:48, marginBottom:12 }}>🧱</div>
+          <div style={{ fontWeight:700, color:"#6b7280", fontSize:15, marginBottom:6 }}>The wall is empty — for now</div>
+          <div style={{ fontSize:13, lineHeight:1.6 }}>
+            When staff choose to share their feedback on the Community Wall, anonymous posts will appear here. Be the first to add your voice!
+          </div>
+        </div>
+      ) : (
+        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          {wallPosts.map(post => (
+            <div key={post.id} style={{ ...S.card, border:"1px solid #e5e7eb" }}>
+              <p style={{ margin:"0 0 12px", fontSize:14, color:"#1f2937", lineHeight:1.65, whiteSpace:"pre-wrap", wordBreak:"break-word" }}>
+                {post.text}
+              </p>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <span style={{ fontSize:11, color:"#d1d5db" }}>
+                  {post.date} · Anonymous
+                </span>
+                <button
+                  onClick={() => thumbsUp(post.id)}
+                  aria-label={`Thumbs up this post${post.likes > 0 ? `, ${post.likes} like${post.likes !== 1 ? "s" : ""}` : ""}`}
+                  style={{
+                    display:"flex", alignItems:"center", gap:5,
+                    padding:"5px 12px",
+                    background:"#f9fafb",
+                    border:"1px solid #e5e7eb",
+                    borderRadius:20, fontSize:13, cursor:"pointer",
+                    color:"#6b7280",
+                    fontWeight:500,
+                    transition:"all .15s ease"
+                  }}
+                >
+                  👍{post.likes > 0 && <span>{post.likes}</span>}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <p style={{ textAlign:"center", fontSize:11, color:"#d1d5db", marginTop:18 }}>
+        All posts and likes are fully anonymous — no identifying information is stored.
+      </p>
     </div></div>
   );
 
